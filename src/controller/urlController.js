@@ -7,8 +7,8 @@ const baseUrl = "http://localhost:3000/"
 
 const redisClient = redis.createClient(
     17269,
-    "redis-17269.c264.ap-south-1-1.ec2.cloud.redislabs.com",
-    { no_ready_check: true }
+    "redis-17269.c264.ap-south-1-1.ec2.cloud.redislabs.com"
+    
 );
 
 redisClient.auth("L9uCuh4Xbc3rXguxyUH9LQUOwl3UlXU1", function (err) {
@@ -25,7 +25,7 @@ const GETEX_ASYNC = promisify(redisClient.GETEX).bind(redisClient)
 const createUrl = async function (req, res) {
     try {
         const data= req.body;
-        let longUrl=data.longUrl;
+         longUrl=data.longUrl;
         if (Object.keys(data).length == 0) {
             return res.status(400).send({ status: false, message: "Please Enter Longurl to create shorturl" })
         }
@@ -35,8 +35,8 @@ const createUrl = async function (req, res) {
         if (!validator.isURL(longUrl)) {
             return res.status(400).send({ status: false, message: "Not a valid url" })
         }
-        let cachedLongUrl=await GETEX_ASYNC(`${longUrl}`)
-        let Link=JSON.parse(cachedLongUrl)
+        const cachedLongUrl=await GETEX_ASYNC(`${longUrl}`)
+        const Link=JSON.parse(cachedLongUrl)
         if(Link){
             return res.status(200).send({ longUrl: Link.longUrl, shortUrl: Link.shortUrl , urlCode: Link.urlCode})
         }
@@ -68,9 +68,9 @@ const getUrl = async (req, res) => {
         if (!shortid.isValid(urlCode)) {
             return res.status(400).send({ status: false, message: "Urlcode is Invalid" })
         }
-        let cachedUrl = await GETEX_ASYNC(`${req.params.urlCode}`)
+        const cachedUrl = await GETEX_ASYNC(`${req.params.urlCode}`)
         
-        let objCache = JSON.parse(cachedUrl)
+        const objCache = JSON.parse(cachedUrl)
         
         if (objCache) {
             return res.status(302).redirect(objCache.longUrl)
@@ -78,7 +78,7 @@ const getUrl = async (req, res) => {
         else {
             let presenturl = await urlModel.findOne({ urlCode: urlCode })
             if (!presenturl) {
-                return res.status(400).send({ status: false, message: "Urlcode is Invalid " })
+                return res.status(404).send({ status: false, message: "Urlcode is Invalid " })
             }
             await SETEX_ASYNC(`${urlCode}`,86400, JSON.stringify(presenturl))
             return res.status(302).redirect(presenturl.longUrl)
